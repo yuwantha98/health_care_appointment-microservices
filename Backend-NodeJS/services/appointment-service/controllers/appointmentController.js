@@ -151,7 +151,24 @@ const getUserAppointments = async (req, res) => {
  * @access  Private
  */
 const getAppointmentStatus = async (req, res) => {
-  
+  try {
+    const appointmentId = req.params.id;
+
+    const appointment = await Appointment.findById(appointmentId);
+
+    if (!appointment) {
+      res.status(404).json({ message: 'Appointment not found' });
+      return;
+    }
+
+    res.status(200).json({
+      message: 'Appointment status fetched successfully',
+      data: appointment
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
 };
 
 /**
