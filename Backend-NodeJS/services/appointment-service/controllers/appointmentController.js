@@ -122,7 +122,27 @@ const bookAppointment = async (req, res) => {
  * @access  Private
  */
 const getUserAppointments = async (req, res) => {
-  
+  try {
+    const role = req.user.role;
+    const userId = req.user.id;
+
+    let query = {};
+    if (role === 'patient') {
+      query.patientId = userId;
+    } else if (role === 'doctor') {
+      query.doctorId = userId;
+    }
+
+    const appointments = await Appointment.find(query).sort({ date: -1 });
+
+    res.status(200).json({
+      message: 'Appointments fetched successfully',
+      data: appointments
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
 };
 
 /**
