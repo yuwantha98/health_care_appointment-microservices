@@ -26,7 +26,9 @@ export default function LoginPage() {
 
       localStorage.setItem("token", response.data.token);
       
-      const user = response.data.user;
+      const user = response.data.data;
+
+      console.log("Logged in user:", user);
 
       if (user.role == "admin") {
         navigate("/admin");
