@@ -33,6 +33,9 @@ export default function Header() {
             <NavLink end className={({ isActive }) => `font-label text-sm transition-colors ${isActive ? "text-primary font-semibold" : "text-gray-600 hover:text-primary"}`} to="/">Home</NavLink>
             <NavLink className={({ isActive }) => `font-label text-sm transition-colors ${isActive ? "text-primary font-semibold" : "text-gray-600 hover:text-primary"}`} to={token ? "/patient-dashboard" : "/services"}>{nav1}</NavLink>
             <NavLink className={({ isActive }) => `font-label text-sm transition-colors ${isActive ? "text-primary font-semibold" : "text-gray-600 hover:text-primary"}`} to={token ? "/find-doctor" : "/resources"}>{nav2}</NavLink>
+            {token && (
+              <NavLink className={({ isActive }) => `font-label text-sm transition-colors ${isActive ? "text-primary font-semibold" : "text-gray-600 hover:text-primary"}`} to="/payment-history">Payments</NavLink>
+            )}
             <NavLink className={({ isActive }) => `font-label text-sm transition-colors ${isActive ? "text-primary font-semibold" : "text-gray-600 hover:text-primary"}`} to={token ? "/profile" : "/about"}>{nav3}</NavLink>
           </div>
         </div>
