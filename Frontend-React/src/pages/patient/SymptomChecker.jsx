@@ -268,7 +268,7 @@ export default function SymptomChecker() {
       </div>
       <div>
         <div class="header-title">Patient Diagnostic Report</div>
-        <div class="header-sub">HealthPro AI Clinical Systems</div>
+        <div class="header-sub">CareBridge AI Clinical Systems</div>
       </div>
     </div>
     <div class="header-right">
@@ -351,7 +351,7 @@ export default function SymptomChecker() {
   <!-- FOOTER -->
   <div class="footer">
     <p>Disclaimer: This is an AI-generated report. Always consult a licensed physician before making medical decisions.</p>
-    <p>HealthPro AI &bull; ${new Date().getFullYear()}</p>
+    <p>CareBridge AI &bull; ${new Date().getFullYear()}</p>
   </div>
 
 </body>
@@ -378,13 +378,13 @@ export default function SymptomChecker() {
             {/* HEADER / BRANDING */}
             <nav className="relative z-20 border-b border-white/5 bg-black/20 backdrop-blur-md px-6 py-4">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/')}>
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    <div className="flex items-center gap-4 group cursor-pointer" onClick={() => navigate('/')}>
+                        <div className="w-21 h-14 rounded-xl overflow-hidden shadow-xl group-hover:scale-105 transition-transform flex-shrink-0 border border-white/5">
+                            <img src="/logo.png" alt="CareBridge" className="w-full h-full object-contain" onError={(e)=>{e.target.style.display='none';}}/>
                         </div>
-                        <div>
-                            <span className="text-xl font-black tracking-tighter text-white uppercase italic">HealthPro <span className="text-blue-500">AI</span></span>
-                            <div className="flex items-center gap-1">
+                        <div className="hidden sm:block">
+                            <span className="text-xl font-black tracking-tighter text-white">Care<span className="text-emerald-400">Bridge</span></span>
+                            <div className="flex items-center gap-1 mt-1">
                                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                                 <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Neural Diagnostic Active</span>
                             </div>
@@ -806,8 +806,8 @@ export default function SymptomChecker() {
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                             </div>
                                             <div>
-                                                <h1 className="text-xl font-bold text-black tracking-tight uppercase">Patient Diagnostic Report</h1>
-                                                <p className="text-[9px] text-slate-400 font-medium uppercase tracking-widest">HealthPro AI Clinical Systems</p>
+                                                <h1 className="text-xl font-black text-slate-900 tracking-tighter uppercase">Patient Diagnostic Report</h1>
+                                                <p className="text-[9px] text-emerald-600 font-bold uppercase tracking-[0.2em]">CareBridge AI Clinical Systems &bull; Bridging Excellence</p>
                                             </div>
                                         </div>
                                         <div className="text-right">
@@ -907,7 +907,7 @@ export default function SymptomChecker() {
                                     {/* Footer Section */}
                                     <div className="pt-4 border-t border-slate-200 flex justify-between items-center">
                                         <p className="text-[7px] text-slate-400 font-medium uppercase tracking-widest">Disclaimer: AI-generated report. Always consult a licensed physician.</p>
-                                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">HealthPro AI &bull; {new Date().getFullYear()}</p>
+                                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">CareBridge AI &bull; {new Date().getFullYear()}</p>
                                     </div>
                                 </div>
                             </div>
@@ -918,7 +918,7 @@ export default function SymptomChecker() {
             
             {/* FOOTER */}
             <footer className="relative z-10 py-10 text-center text-slate-600 text-[10px] font-bold uppercase tracking-widest bg-black/50">
-                <p>&copy; 2026 HealthPro AI &bull; DeepMind Clinical Suite 3.4 &bull; All Protocols Secure</p>
+                <p>&copy; 2026 CareBridge AI &bull; Clinical Suite 3.4 &bull; All Protocols Secure</p>
             </footer>
         </div>
     );
