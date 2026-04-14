@@ -1,33 +1,62 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const cors = require('cors');
-const doctorRoutes = require('./routes/doctorRoutes');
+const express = require("express");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+const cors = require("cors");
+const doctorRoutes = require("./routes/doctorRoutes");
 
 dotenv.config();
 
 const app = express();
 
+// Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB Connected to doctordb'))
-  .catch(err => console.error('MongoDB Connection Error:', err));
+// MongoDB Connection
+const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/doctordb";
 
-app.use('/api/doctors', doctorRoutes);
+mongoose
+  .connect(MONGO_URI)
+  .then(() => console.log("✅ MongoDB Connected to doctordb"))
+  .catch((err) => {
+    console.error("❌ MongoDB Connection Error:", err);
+    process.exit(1);
+  });
 
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'UP', service: 'doctor-service' });
+// Routes
+app.use("/api/doctors", doctorRoutes);
+
+// Health check
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "UP",
+    service: "doctor-service",
+    timestamp: new Date().toISOString(),
+  });
 });
 
+// Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Server Error', error: err.message });
+  console.error("❌ Error:", err.stack);
+  res.status(500).json({
+    message: "Server Error",
+    error:
+      process.env.NODE_ENV === "development"
+        ? err.message
+        : "Internal Server Error",
+  });
+});
+
+// 404 handler
+app.use("*", (req, res) => {
+  res.status(404).json({ message: `Route ${req.originalUrl} not found` });
 });
 
 const PORT = process.env.PORT || 3002;
 
 app.listen(PORT, () => {
   console.log(`Doctor Service running on port ${PORT}`);
+  console.log(`Health check: http://localhost:${PORT}/health`);
+  console.log(`API endpoint: http://localhost:${PORT}/api/doctors`);
 });

@@ -1,27 +1,31 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
 const protect = async (req, res, next) => {
   let token;
 
   if (
     req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
+    req.headers.authorization.startsWith("Bearer")
   ) {
     try {
-      token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      // Add user info to request
-      // Mapping new JWT payload {userId, role, refId} to existing middleware interface
-      req.user = { id: decoded.refId, userId: decoded.userId, role: decoded.role };
+      token = req.headers.authorization.split(" ")[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || "secret123");
+
+      req.user = {
+        id: decoded.refId,
+        userId: decoded.userId,
+        role: decoded.role,
+      };
+
       next();
     } catch (error) {
       console.error(error);
-      res.status(401).json({ message: 'Not authorized, token failed' });
+      res.status(401).json({ message: "Not authorized, token failed" });
     }
   }
 
   if (!token) {
-    res.status(401).json({ message: 'Not authorized, no token' });
+    res.status(401).json({ message: "Not authorized, no token" });
   }
 };
 
@@ -29,7 +33,7 @@ const authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
-        message: `User role ${req.user.role} is not authorized to access this route.`,
+        message: `User role ${req.user.role} is not authorized to access this route`,
       });
     }
     next();
