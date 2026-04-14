@@ -7,6 +7,7 @@ import LoginPage from './pages/loginPage'
 import RoleSelection from './components/roleSelection'
 import PatientRegister from './components/patientRegister'
 import DoctorRegister from './components/doctorRegister'
+import SymptomChecker from './pages/patient/SymptomChecker'
 
 function App() {
 
@@ -22,6 +23,7 @@ function App() {
           <Route path="/*" element={<HomePage />} />
           <Route path="/patient-register" element={<PatientRegister />} />
           <Route path="/doctor-register" element={<DoctorRegister />} />
+          <Route path="/symptom-checker" element={<SymptomChecker />} />
           <Route path="/role-selection" element={<RoleSelection />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/admin/*" element={<AdminPage />} />
