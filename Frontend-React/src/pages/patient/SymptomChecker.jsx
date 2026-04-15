@@ -736,15 +736,7 @@ export default function SymptomChecker() {
                                                             // 3. Update symptoms and trigger analysis
                                                             const newList = [...new Set([...selectedSymptoms, cleanSymptom])];
                                                             setSelectedSymptoms(newList);
-                                                            
-                                                            toast.promise(
-                                                                runAnalysis(newList),
-                                                                {
-                                                                    loading: `Analysing ${cleanSymptom}...`,
-                                                                    success: 'Analysis Updated',
-                                                                    error: 'Analysis failed'
-                                                                }
-                                                            );
+                                                            runAnalysis(newList);
                                                         }}
                                                         className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl flex items-center gap-2 ${
                                                             isAnalyzing && clickedQuestionIdx === idx
