@@ -603,34 +603,44 @@ export default function SymptomChecker() {
                                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-10">
                                     <div className="flex-1 space-y-8">
 
-                                        {/* POSSIBLE CONDITIONS (ranked) */}
-                                        <div>
-                                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3 px-1">Possible Conditions — AI Assessment Only</p>
-                                            <div className="space-y-2">
-                                                {(aiResult.possibleConditions || []).map((c, i) => (
-                                                    <div key={i} className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-white/5 border border-white/5">
-                                                        <span className={`font-bold text-sm ${i === 0 ? 'text-white' : 'text-slate-400'}`}>{c.name}</span>
-                                                        <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-full ${
-                                                            c.likelihood === 'Most Likely'
-                                                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                                                : c.likelihood === 'Possible'
-                                                                ? 'bg-amber-500/15 text-amber-400 border border-amber-500/20'
-                                                                : 'bg-white/5 text-slate-500 border border-white/5'
-                                                        }`}>{c.likelihood}</span>
-                                                    </div>
-                                                ))}
-                                                {(!aiResult.possibleConditions || aiResult.possibleConditions.length === 0) && (
-                                                    <p className="text-slate-500 text-sm font-medium px-3">Could not identify a specific condition — please see a GP.</p>
-                                                )}
+                                        {/* PRIMARY CONDITION — Prominent Display */}
+                                        {aiResult.possibleConditions?.length > 0 && (
+                                            <div>
+                                                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-1 px-1">Most Likely Condition</p>
+                                                <p className="text-2xl font-black text-white tracking-tighter leading-tight italic">{aiResult.possibleConditions[0].name}</p>
+                                                <p className="text-[9px] text-slate-500 font-bold mt-1 px-0.5">⚠ AI assessment only — not a confirmed diagnosis</p>
                                             </div>
-                                        </div>
+                                        )}
+
+                                        {/* RANKED CONDITIONS LIST */}
+                                        {aiResult.possibleConditions?.length > 1 && (
+                                            <div>
+                                                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 px-1">Other Possibilities</p>
+                                                <div className="space-y-1.5">
+                                                    {aiResult.possibleConditions.slice(1).map((c, i) => (
+                                                        <div key={i} className="flex items-center justify-between py-2 px-3 rounded-xl bg-white/5 border border-white/5">
+                                                            <span className="font-bold text-sm text-slate-400">{c.name}</span>
+                                                            <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-full ${
+                                                                c.likelihood === 'Possible'
+                                                                    ? 'bg-amber-500/15 text-amber-400 border border-amber-500/20'
+                                                                    : 'bg-white/5 text-slate-500 border border-white/5'
+                                                            }`}>{c.likelihood}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {(!aiResult.possibleConditions || aiResult.possibleConditions.length === 0) && (
+                                            <p className="text-slate-500 text-sm font-medium px-1">Could not identify a specific condition — please see a GP.</p>
+                                        )}
 
                                         <div>
                                             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-2 px-1">Clinical Guidance</p>
                                             <p className="text-slate-300 font-medium leading-relaxed">{aiResult.clinicalAdvice}</p>
                                         </div>
 
-                                        <div className="flex gap-4">
+                                        <div className="flex flex-wrap items-center gap-4">
                                             <button
                                                 onClick={() => setShowReport(true)}
                                                 className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 px-6 py-3 rounded-xl border border-emerald-500/20 transition-all active:scale-95"
@@ -638,21 +648,41 @@ export default function SymptomChecker() {
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                                 View Health Report
                                             </button>
+                                            {aiResult.possibleConditions?.length > 0 && (
+                                                <div className="flex items-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl">
+                                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Identified:</span>
+                                                    <span className="text-sm font-black text-white italic">{aiResult.possibleConditions[0].name}</span>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 
-                                    {/* Risk Level Side Panel */}
-                                    {(() => {
-                                        const risk = riskConfig[aiResult.riskLevel] || riskConfig.Low;
-                                        return (
-                                            <div className={`w-full md:w-44 p-5 rounded-2xl border text-center ${risk.bg} ${risk.border}`}>
-                                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3">Risk Level</p>
-                                                <div className="text-4xl mb-2">{risk.icon}</div>
-                                                <div className={`text-base font-black ${risk.color} uppercase tracking-tight leading-tight`}>{risk.label}</div>
-                                                <p className="text-[8px] text-slate-500 mt-3 leading-tight">This is an AI assessment, not a diagnosis.</p>
-                                            </div>
-                                        );
-                                    })()}
+                                    {/* Disease Name + Match Score Panel */}
+                                    <div className="w-full md:w-52 bg-white/5 p-5 rounded-2xl border border-white/10 text-center relative overflow-hidden backdrop-blur-md flex-shrink-0">
+                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3">AI Diagnosis</p>
+
+                                        {/* Disease Name — large & prominent */}
+                                        <p className="text-lg font-black text-white tracking-tighter italic leading-tight mb-4">
+                                            {aiResult.possibleConditions?.[0]?.name || '—'}
+                                        </p>
+
+                                        {/* Match % */}
+                                        <div className="text-3xl font-black text-white mb-3 tracking-tighter italic">
+                                            {aiResult.matchScore || '—'}
+                                        </div>
+
+                                        {/* Progress bar */}
+                                        <div className="w-full bg-white/5 rounded-full h-2 shadow-inner">
+                                            <div
+                                                className="bg-gradient-to-r from-emerald-600 to-emerald-400 h-full rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all duration-1000"
+                                                style={{ width: aiResult.matchScore || '0%' }}
+                                            ></div>
+                                        </div>
+                                        <div className="mt-3 flex justify-between text-[10px] font-bold text-slate-500 px-1 uppercase tracking-tighter">
+                                            <span>Baseline</span>
+                                            <span>Match</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
