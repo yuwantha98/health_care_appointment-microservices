@@ -6,7 +6,7 @@ const symptomDatabase = [
         specialty: 'General Practitioner',
         advice: 'Stay hydrated, rest, and monitor your temperature closely.',
         lifestyleAdvice: 'Stay home for at least 24 hours after fever resolves. Avoid contact with others. Maintain 8+ hours of sleep.',
-        followUp: ['Do you have a loss of taste or smell?', 'Is your cough dry or producing mucus?', 'Have you been in contact with anyone with flu recently?']
+        followUp: ['Is your cough dry or producing mucus?', 'Have you been in contact with anyone with flu recently?', 'Do you have a regular fever above 38°C?']
     },
     {
         keywords: ['loss of taste', 'loss of smell', 'dry cough', 'shortness of breath', 'fever', 'difficulty breathing', 'chest pain'],
@@ -160,14 +160,74 @@ const symptomDatabase = [
         specialty: 'Hematologist',
         advice: 'Consider iron-rich foods or supplements. A CBC (Complete Blood Count) blood test is recommended.',
         lifestyleAdvice: 'Combine iron-rich foods with Vitamin C for better absorption. Avoid tea or coffee with meals.',
-        followUp: ['Are you vegetarian or vegan?', 'Have you noticed any changes in your menstrual cycle?']
+    },
+    {
+        keywords: ['back pain', 'lower back', 'lifting injury', 'stiffness', 'muscle spasm', 'sciatica', 'leg numbness'],
+        condition: 'Mechanical Back Pain / Lumbar Strain',
+        specialty: 'Orthopedist / Physiotherapist',
+        advice: 'Avoid heavy lifting. Gentle stretching and heat packs may help. If pain radiates down the leg, see a doctor.',
+        lifestyleAdvice: 'Maintain proper posture when sitting. Use ergonomic chairs. Focus on core-strengthening exercises.',
+        followUp: ['Did the pain start after lifting something heavy?', 'Does the pain radiate down your legs?']
+    },
+    {
+        keywords: ['itchy patches', 'ring shape', 'scaly', 'red patches', 'between toes', 'fungal'],
+        condition: 'Fungal Skin Infection (Ringworm / Athlete\'s Foot)',
+        specialty: 'Dermatologist',
+        advice: 'Keep the area dry and clean. Over-the-counter antifungal creams are usually effective.',
+        lifestyleAdvice: 'Do not share towels or slippers. Wear breathable cotton socks. Keep skin dry after bathing.',
+        followUp: ['Is the rash shaped like a ring?', 'Is it localized to your feet or groin?']
+    },
+    // --- OPHTHALMOLOGY (Eyes) ---
+    {
+        keywords: ['red eyes', 'eye pain', 'blurry vision', 'light halos', 'itchy eyes', 'eye discharge'],
+        condition: 'Conjunctivitis / Possible Glaucoma',
+        specialty: 'Ophthalmologist',
+        advice: 'Avoid rubbing your eyes. If you see halos around lights or have severe pain, seek urgent eye care.',
+        lifestyleAdvice: 'Use clean towels. Avoid wearing contact lenses until cleared. Limit screen time.',
+        followUp: ['Do you see halos or rainbows around lights?', 'Is there any pus-like discharge from the eye?']
+    },
+    // --- ENT (Ear, Nose, Throat) ---
+    {
+        keywords: ['ear ache', 'muffled hearing', 'fluid from ear', 'ear ringing', 'tinnitus'],
+        condition: 'Otitis Media (Ear Infection)',
+        specialty: 'ENT Specialist',
+        advice: 'Do not put anything inside the ear canal. Keep the ear dry.',
+        lifestyleAdvice: 'Avoid swimming until the infection clears. Use a warm compress for pain relief.',
+        followUp: ['Is there any fluid or blood draining from the ear?', 'Do you have a fever?']
+    },
+    {
+        keywords: ['sinus pain', 'blocked nose', 'facial pressure', 'yellow mucus', 'loss of smell'],
+        condition: 'Sinusitis',
+        specialty: 'ENT Specialist',
+        advice: 'Use saline nasal rinses. Steam inhalation may help relieve pressure.',
+        lifestyleAdvice: 'Stay hydrated. Use a humidifier. Avoid sudden temperature changes.',
+        followUp: ['Is the mucus yellow or green?', 'Do you have a headache specifically in the forehead area?']
+    },
+    // --- DENTAL ---
+    {
+        keywords: ['tooth ache', 'gum swelling', 'sensitive to cold', 'sensitive to hot', 'bad breath', 'bleeding gums'],
+        condition: 'Dental Abscess / Gingivitis',
+        specialty: 'Dentist',
+        advice: 'Rinse with warm salt water. See a dentist as soon as possible for an X-ray.',
+        lifestyleAdvice: 'Brush twice daily and floss. Avoid sugary foods and very cold/hot drinks for now.',
+        followUp: ['Is the pain throbbing?', 'Is there a visible bump on your gums?']
+    },
+    // --- GYNECOLOGY ---
+    {
+        keywords: ['irregular periods', 'pelvic pain', 'cramps', 'heavy bleeding', 'hormonal'],
+        condition: 'Menstrual Irregularity / Possible PCOS',
+        specialty: 'Gynecologist',
+        advice: 'Keep a tracker of your cycles. A pelvic ultrasound or blood tests may be needed.',
+        lifestyleAdvice: 'Maintain a balanced diet. Regular exercise can help regulate hormones. Manage stress.',
+        followUp: ['Has your cycle been irregular for more than 3 months?', 'Are you experiencing any unusual hair growth or acne?']
     }
 ];
 
 // ─── Emergency Symptom Detection ─────────────────────────────────────────────
 const EMERGENCY_SYMPTOMS = [
-    'chest pain', 'shortness of breath', 'arm pain', 'jaw pain',
-    'face drooping', 'arm weakness', 'speech difficulty', 'numbness on one side',
+    'chest pain', 'shortness of breath', 'difficulty breathing', 
+    'heavy bleeding', 'unconscious', 'seizure', 'severe allergic reaction',
+    'face drooping', 'arm weakness', 'speech difficulty', 'confusion', 'numbness on one side',
     'blood in urine', 'coughing up blood', 'severe bleeding',
     'loss of consciousness', 'seizure', 'unresponsive', 'can\'t breathe'
 ];
@@ -223,6 +283,17 @@ const getRecommendedAction = (riskLevel) => {
     };
     return actions[riskLevel] || actions.Low;
 };
+
+// ─── Diversity Engine: Broad Triage Probes ────────────────────────────────────
+const GLOBAL_SPECIALTY_PROBES = [
+    'Are you experiencing any skin rashes or unusual redness?',
+    'Is the issue related to your joints or bones (e.g., back or knee pain)?',
+    'Are you experiencing any digestive issues (stomach pain, nausea, bloating)?',
+    'Do you have any vision changes or eye irritation?',
+    'Is there any burning or discomfort during urination?',
+    'Are you feeling unusually anxious or experiencing panic episodes?',
+    'Have you noticed any changes in your breathing (wheezing or tightness)?'
+];
 
 // ─── Main Analysis Controller ─────────────────────────────────────────────────
 const analyzeSymptoms = (req, res) => {
@@ -323,13 +394,21 @@ const analyzeSymptoms = (req, res) => {
                 return symptoms.some(s => s.toLowerCase().includes(cleaned)) || inputString.includes(cleaned);
             };
 
-            // Filter both condition-specific follow-ups and auto-generated ones
-            followUpQuestions = (best.followUp && best.followUp.length > 0)
-                ? best.followUp.filter(q => !isAnswered(q)).slice(0, 3)
-                : best.keywords
-                    .filter(kw => !inputString.includes(kw.toLowerCase()))
-                    .map(kw => `Are you also experiencing ${kw}?`)
+            // DIVERSITY ENGINE: If score is very low, ask broad specialty probes instead of specific disease questions
+            if (best.score <= 2.0) {
+                followUpQuestions = GLOBAL_SPECIALTY_PROBES
+                    .filter(q => !isAnswered(q))
+                    .sort(() => 0.5 - Math.random()) // Randomize for better coverage
                     .slice(0, 3);
+            } else {
+                // If we have some confidence, ask condition-specific questions
+                followUpQuestions = (best.followUp && best.followUp.length > 0)
+                    ? best.followUp.filter(q => !isAnswered(q)).slice(0, 3)
+                    : best.keywords
+                        .filter(kw => !inputString.includes(kw.toLowerCase()))
+                        .map(kw => `Are you also experiencing ${kw}?`)
+                        .slice(0, 3);
+            }
         }
 
         // Compute a display-friendly match score (capped at 96%)
