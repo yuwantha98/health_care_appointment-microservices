@@ -1,7 +1,7 @@
 const symptomDatabase = [
     // --- RESPIRATORY ---
     {
-        keywords: ['fever', 'cough', 'chills', 'sore throat', 'body ache', 'tired', 'fatigue'],
+        keywords: ['fever', 'cough', 'chills', 'sore throat', 'body ache', 'tired', 'fatigue', 'mucus', 'contact'],
         condition: 'Influenza (Flu)',
         specialty: 'General Practitioner',
         advice: 'Stay hydrated, rest, and monitor your temperature closely.',
@@ -9,7 +9,7 @@ const symptomDatabase = [
         followUp: ['Do you have a loss of taste or smell?', 'Is your cough dry or producing mucus?', 'Have you been in contact with anyone with flu recently?']
     },
     {
-        keywords: ['loss of taste', 'loss of smell', 'dry cough', 'shortness of breath', 'fever'],
+        keywords: ['loss of taste', 'loss of smell', 'dry cough', 'shortness of breath', 'fever', 'difficulty breathing', 'chest pain'],
         condition: 'COVID-19',
         specialty: 'General Practitioner',
         advice: 'Please isolate and consider getting a rapid antigen or PCR test. Monitor your oxygen levels if possible.',
@@ -17,7 +17,7 @@ const symptomDatabase = [
         followUp: ['Do you have difficulty breathing at rest?', 'Have you tested positive for COVID-19 before?']
     },
     {
-        keywords: ['wheezing', 'shortness of breath', 'chest tightness', 'coughing at night', 'difficulty breathing'],
+        keywords: ['wheezing', 'shortness of breath', 'chest tightness', 'coughing at night', 'difficulty breathing', 'exercise', 'inhaler'],
         condition: 'Asthma / Bronchospasm',
         specialty: 'Pulmonologist',
         advice: 'Use your rescue inhaler if available. Avoid known environmental triggers.',
@@ -25,7 +25,7 @@ const symptomDatabase = [
         followUp: ['Does the wheezing worsen with exercise or at night?', 'Do you have a known inhaler prescription?']
     },
     {
-        keywords: ['deep cough', 'yellow mucus', 'green mucus', 'chest pain when breathing', 'shaking chills'],
+        keywords: ['deep cough', 'yellow mucus', 'green mucus', 'chest pain when breathing', 'shaking chills', 'high fever', 'coughing blood'],
         condition: 'Pneumonia',
         specialty: 'Pulmonologist',
         advice: 'This could indicate a serious lung infection. Please see a doctor for a chest X-ray immediately.',
@@ -35,7 +35,7 @@ const symptomDatabase = [
 
     // --- CARDIAC (Emergency category) ---
     {
-        keywords: ['chest pain', 'shortness of breath', 'arm pain', 'heart palpitations', 'sweating', 'jaw pain'],
+        keywords: ['chest pain', 'shortness of breath', 'arm pain', 'heart palpitations', 'sweating', 'jaw pain', 'left arm', 'cold sweat'],
         condition: 'Cardiovascular Emergency / Possible Angina',
         specialty: 'Cardiologist / Emergency',
         advice: 'These symptoms may indicate a cardiac emergency. Seek immediate medical attention.',
@@ -43,7 +43,7 @@ const symptomDatabase = [
         followUp: ['Is the chest pain radiating to your left arm or jaw?', 'Are you experiencing cold sweats?']
     },
     {
-        keywords: ['blood pressure', 'hypertension', 'vision change', 'heartbeat', 'nosebleed', 'dizzy'],
+        keywords: ['blood pressure', 'hypertension', 'vision change', 'heartbeat', 'nosebleed', 'dizzy', 'medication'],
         condition: 'Hypertension (Elevated Blood Pressure)',
         specialty: 'Cardiologist',
         advice: 'Reduce salt intake. Frequent monitoring is required. Do not stop prescribed medication.',
@@ -53,7 +53,7 @@ const symptomDatabase = [
 
     // --- DIGESTIVE ---
     {
-        keywords: ['stomach pain', 'gastric', 'cramps', 'diarrhea', 'vomiting', 'nausea', 'bloating'],
+        keywords: ['stomach pain', 'gastric', 'cramps', 'diarrhea', 'vomiting', 'nausea', 'bloating', 'blood in stool', 'unusual food'],
         condition: 'Gastroenteritis / Gastritis',
         specialty: 'Gastroenterologist',
         advice: 'Ensure adequate fluid intake. Avoid spicy, oily, or heavy foods for 48 hours.',
@@ -61,7 +61,7 @@ const symptomDatabase = [
         followUp: ['Is there blood in your stool?', 'Have you eaten anything unusual in the past 24 hours?']
     },
     {
-        keywords: ['heartburn', 'acid reflux', 'burning in chest', 'sour taste', 'difficulty swallowing'],
+        keywords: ['heartburn', 'acid reflux', 'burning in chest', 'sour taste', 'difficulty swallowing', 'lying down'],
         condition: 'GERD (Gastroesophageal Reflux Disease)',
         specialty: 'Gastroenterologist',
         advice: 'Avoid eating within 3 hours of bedtime. Use antacids for temporary relief.',
@@ -71,7 +71,7 @@ const symptomDatabase = [
 
     // --- ENDOCRINE ---
     {
-        keywords: ['excessive thirst', 'frequent urination', 'fatigue', 'blurry vision', 'weight loss', 'extra hunger', 'slow healing', 'dry mouth'],
+        keywords: ['excessive thirst', 'frequent urination', 'fatigue', 'blurry vision', 'weight loss', 'extra hunger', 'slow healing', 'dry mouth', 'tingling', 'numbness', 'family history'],
         condition: 'Possible Diabetes (Type 1 or Type 2)',
         specialty: 'Endocrinologist',
         advice: 'Monitor your blood sugar levels. A clinical HbA1c test and in-person consultation are required.',
@@ -79,7 +79,7 @@ const symptomDatabase = [
         followUp: ['Are your hands or feet tingling or numb?', 'Has anyone in your family been diagnosed with diabetes?']
     },
     {
-        keywords: ['weight gain', 'cold intolerance', 'dry skin', 'thinning hair', 'constipation'],
+        keywords: ['weight gain', 'cold intolerance', 'dry skin', 'thinning hair', 'constipation', 'cold feeling'],
         condition: 'Possible Hypothyroidism',
         specialty: 'Endocrinologist',
         advice: 'Your thyroid may be underactive. A TSH blood test is clinically recommended.',
@@ -89,7 +89,7 @@ const symptomDatabase = [
 
     // --- NEUROLOGICAL ---
     {
-        keywords: ['headache', 'migraine', 'light sensitivity', 'nausea', 'aura', 'throbbing'],
+        keywords: ['headache', 'migraine', 'light sensitivity', 'nausea', 'aura', 'throbbing', 'one side', 'localized', 'visual'],
         condition: 'Migraine',
         specialty: 'Neurologist',
         advice: 'Rest in a dark, quiet room. Avoid known triggers such as bright screens and caffeine.',
@@ -244,15 +244,24 @@ const analyzeSymptoms = (req, res) => {
         // 2. Emergency Detection (runs BEFORE scoring)
         const isEmergency = EMERGENCY_SYMPTOMS.some(s => inputString.includes(s));
 
-        // 3. Score all conditions
+        // 3. Score all conditions with Weighted Sensitivity
         const scoredMatches = symptomDatabase.map(entry => {
             let score = 0;
             const matchedKeywords = [];
+            
             entry.keywords.forEach(kw => {
-                if (inputString.includes(kw.toLowerCase())) {
-                    score++;
-                    matchedKeywords.push(kw);
-                }
+                const kwLower = kw.toLowerCase();
+                // Check each individual symptom chip for weighted scoring
+                symptoms.forEach(s => {
+                    const sLower = s.toLowerCase();
+                    if (sLower.includes(kwLower)) {
+                        // High-Sensitivity: Specific details (multi-word answers from "Yes" clicks)
+                        // carry 2x weight to make the AI more decisive.
+                        const weight = (s.split(' ').length > 1) ? 2.0 : 1.0;
+                        score += weight;
+                        if (!matchedKeywords.includes(kw)) matchedKeywords.push(kw);
+                    }
+                });
             });
             return { ...entry, score, matchedKeywords };
         });
@@ -304,11 +313,23 @@ const analyzeSymptoms = (req, res) => {
         let followUpQuestions = [];
 
         if (isAmbiguous) {
-            const missingKeywords = best.keywords.filter(kw => !inputString.includes(kw.toLowerCase()));
-            // Use the condition's own follow-up questions first, then generate from missing keywords
-            followUpQuestions = best.followUp && best.followUp.length > 0
-                ? best.followUp.slice(0, 3)
-                : missingKeywords.slice(0, 3).map(kw => `Are you also experiencing ${kw}?`);
+            // Helper to clean a question for duplicate checking
+            const isAnswered = (q) => {
+                const cleaned = q.toLowerCase()
+                    .replace(/^(is the|does the|do you|has the|have you|is there|when did|are you experiencing|are you also experiencing|are you feeling|do you notice|is your|have you felt|any)\s+/i, '')
+                    .replace(/\?$/, '')
+                    .trim();
+                // Check if the cleaned symptom is ALREADY a substring of any existing symptom
+                return symptoms.some(s => s.toLowerCase().includes(cleaned)) || inputString.includes(cleaned);
+            };
+
+            // Filter both condition-specific follow-ups and auto-generated ones
+            followUpQuestions = (best.followUp && best.followUp.length > 0)
+                ? best.followUp.filter(q => !isAnswered(q)).slice(0, 3)
+                : best.keywords
+                    .filter(kw => !inputString.includes(kw.toLowerCase()))
+                    .map(kw => `Are you also experiencing ${kw}?`)
+                    .slice(0, 3);
         }
 
         // Compute a display-friendly match score (capped at 96%)

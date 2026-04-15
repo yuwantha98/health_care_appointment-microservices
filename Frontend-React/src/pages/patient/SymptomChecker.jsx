@@ -702,25 +702,49 @@ export default function SymptomChecker() {
                                         </div>
                                     </div>
                                     
-                                    <div className="space-y-4">
+                                    <div className="space-y-4 relative">
+                                        {/* Updating Overlay */}
+                                        {isAnalyzing && (
+                                            <div className="absolute inset-0 z-20 bg-slate-950/60 backdrop-blur-[2px] rounded-3xl flex items-center justify-center animate-fade-in">
+                                                <div className="flex flex-col items-center gap-4">
+                                                    <div className="w-10 h-10 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+                                                    <p className="text-white font-black text-sm uppercase tracking-widest italic">Updating Assessment...</p>
+                                                </div>
+                                            </div>
+                                        )}
                                         {aiResult.followUpQuestions.map((q, idx) => (
-                                            <div key={idx} className={`bg-white/5 p-5 rounded-2xl border transition-all group ${clickedQuestionIdx === idx ? 'border-blue-500/50 bg-blue-500/5' : 'border-white/5 hover:bg-white/10'} flex flex-col sm:flex-row sm:items-center justify-between gap-6`}>
+                                            <div key={q} className={`bg-white/5 p-5 rounded-2xl border transition-all group ${clickedQuestionIdx === idx ? 'border-blue-500/50 bg-blue-500/5' : 'border-white/5 hover:bg-white/10'} flex flex-col sm:flex-row sm:items-center justify-between gap-6`}>
                                                 <p className={`font-bold text-base transition-colors ${clickedQuestionIdx === idx ? 'text-blue-400' : 'text-white'}`}>{q}</p>
                                                 <div className="flex gap-3">
                                                     <button 
                                                         disabled={isAnalyzing}
                                                         onClick={() => {
                                                             setClickedQuestionIdx(idx);
+                                                            
+                                                            // 1. Clean the symptom from the question
                                                             const cleanSymptom = q
-                                                                .replace(/^(Are you experiencing|Do you have|Is your|Have you felt|Any|Are you also experiencing|Are you feeling|Do you notice)\s+/i, '')
+                                                                .replace(/^(Is the|Does the|Do you|Has the|Have you|Is there|When did|Are you experiencing|Are you also experiencing|Are you feeling|Do you notice|Is your|Have you felt|Any)\s+/i, '')
                                                                 .replace(/\?$/, '')
                                                                 .trim();
                                                             
-                                                            setSelectedSymptoms(prev => {
-                                                                const newList = [...new Set([...prev, cleanSymptom])];
-                                                                runAnalysis(newList);
-                                                                return newList;
-                                                            });
+                                                            // 2. Clear this question immediately for UI responsiveness
+                                                            setAiResult(prev => ({
+                                                                ...prev,
+                                                                followUpQuestions: prev.followUpQuestions.filter((_, i) => i !== idx)
+                                                            }));
+
+                                                            // 3. Update symptoms and trigger analysis
+                                                            const newList = [...new Set([...selectedSymptoms, cleanSymptom])];
+                                                            setSelectedSymptoms(newList);
+                                                            
+                                                            toast.promise(
+                                                                runAnalysis(newList),
+                                                                {
+                                                                    loading: `Analysing ${cleanSymptom}...`,
+                                                                    success: 'Analysis Updated',
+                                                                    error: 'Analysis failed'
+                                                                }
+                                                            );
                                                         }}
                                                         className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl flex items-center gap-2 ${
                                                             isAnalyzing && clickedQuestionIdx === idx
