@@ -41,6 +41,7 @@ export default function SymptomChecker() {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [aiResult, setAiResult] = useState(null);
     const [showReport, setShowReport] = useState(false);
+    const [showEmergency, setShowEmergency] = useState(false);
     const [doctors, setDoctors] = useState([]);
     const [selectedDoctor, setSelectedDoctor] = useState(null);
 
@@ -48,6 +49,14 @@ export default function SymptomChecker() {
     const [selectedDate, setSelectedDate] = useState('');
     const [selectedTime, setSelectedTime] = useState('');
     const [isBooking, setIsBooking] = useState(false);
+
+    // Risk Level config
+    const riskConfig = {
+        Critical: { color: 'text-red-400',    bg: 'bg-red-500/15',    border: 'border-red-500/30',    icon: '🚨', label: 'Critical Risk' },
+        Urgent:   { color: 'text-orange-400', bg: 'bg-orange-500/15', border: 'border-orange-500/30', icon: '⚠️', label: 'Urgent' },
+        Moderate: { color: 'text-amber-400',  bg: 'bg-amber-500/15',  border: 'border-amber-500/30',  icon: '🔶', label: 'Moderate' },
+        Low:      { color: 'text-emerald-400',bg: 'bg-emerald-500/15',border: 'border-emerald-500/30',icon: '✅', label: 'Low Risk' },
+    };
 
     // Filter suggestions locally
     useEffect(() => {
@@ -100,9 +109,16 @@ export default function SymptomChecker() {
             }, { timeout: 15000 }); 
             
             if (response.data.success) {
-                setAiResult(response.data.data);
-                if (!isReAnalysis) setStep(3); // Result UI
-                fetchDoctors(response.data.data.recommendedSpecialty);
+                const result = response.data.data;
+                setAiResult(result);
+                if (!isReAnalysis) {
+                    setStep(3);
+                    // Trigger emergency modal after a short delay so UI settles
+                    if (result.isEmergency) {
+                        setTimeout(() => setShowEmergency(true), 400);
+                    }
+                }
+                fetchDoctors(result.recommendedSpecialty);
             } else {
                 toast.error(response.data.message || 'Analysis failed.');
                 setStep(1);
@@ -176,15 +192,15 @@ export default function SymptomChecker() {
         if (!printWindow) { alert('Pop-up blocked. Please allow pop-ups for this site.'); return; }
 
         const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-        const confidence = parseInt(aiResult.certainty) || 0;
-        const circumference = 100;
-        const dashArray = `${confidence} ${circumference}`;
+        const riskLevel = aiResult.riskLevel || 'Low';
+        const riskColor = { Critical: '#ef4444', Urgent: '#f97316', Moderate: '#f59e0b', Low: '#10b981' }[riskLevel] || '#10b981';
+        const topCondition = aiResult.possibleConditions?.[0]?.name || 'Unspecified';
 
         const html = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
-<title>Clinical Report - ${aiResult.condition}</title>
+<title>AI Health Assessment - CareBridge</title>
 <style>
   @page { margin: 0.6in; size: A4 portrait; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -277,26 +293,37 @@ export default function SymptomChecker() {
     </div>
   </div>
 
-  <!-- EXECUTIVE SUMMARY -->
-  <div class="summary">
-    <div class="label">Executive Summary</div>
-    <p>AI analysis identified a correlation with <strong>${aiResult.condition}</strong>. The protocol below outlines recommended steps based on <strong>${selectedSymptoms.length}</strong> reported symptom${selectedSymptoms.length !== 1 ? 's' : ''}. Please follow the suggestions and consult the recommended specialist promptly.</p>
+  <!-- DISCLAIMER BANNER -->
+  <div style="background:#fffbeb;border:1px solid #f59e0b;border-radius:6px;padding:10px 14px;margin-bottom:18px;display:flex;gap:10px;align-items:flex-start;">
+    <span style="font-size:16px;flex-shrink:0;">⚠️</span>
+    <p style="font-size:10px;color:#92400e;font-weight:700;line-height:1.6;"><strong>IMPORTANT:</strong> This is an AI-generated health assessment — NOT a medical diagnosis. This document is for informational purposes only. Always consult a licensed physician before making any health decisions.</p>
   </div>
 
-  <!-- ACTIONS + TABLE -->
-  <div class="two-col">
+  <!-- SUMMARY -->
+  <div class="summary">
+    <div class="label">AI Assessment Summary</div>
+    <p>Based on <strong>${selectedSymptoms.length}</strong> reported symptom${selectedSymptoms.length !== 1 ? 's' : ''}, the AI identified <strong>${(aiResult.possibleConditions || []).length}</strong> possible condition(s). Risk level is assessed as <strong>${riskLevel}</strong>. ${aiResult.recommendedAction}</p>
+  </div>
+
     <!-- WHAT TO DO -->
     <div class="actions-box">
-      <div class="section-title">What You Should Do</div>
+      <div class="section-title">Recommended Action</div>
       <div class="action-item">
         <div class="action-number">01</div>
         <div>
-          <div class="action-label">Primary Action</div>
-          <div class="action-text">${aiResult.advice}</div>
+          <div class="action-label">Immediate Action</div>
+          <div class="action-text">${aiResult.recommendedAction}</div>
         </div>
       </div>
       <div class="action-item action-divider">
         <div class="action-number" style="color:#f1f5f9;">02</div>
+        <div>
+          <div class="action-label">Clinical Guidance</div>
+          <div class="action-text recovery">${aiResult.clinicalAdvice || aiResult.advice || 'Consult a licensed physician for a full evaluation.'}</div>
+        </div>
+      </div>
+      <div class="action-item action-divider">
+        <div class="action-number" style="color:#f1f5f9;">03</div>
         <div>
           <div class="action-label">Lifestyle &amp; Recovery</div>
           <div class="action-text recovery">${aiResult.lifestyleAdvice || 'Rest and maintain adequate fluid intake for 48 hours.'}</div>
@@ -314,27 +341,22 @@ export default function SymptomChecker() {
           </tr>
         </thead>
         <tbody>
-          <tr><td>Diagnosis</td><td class="val-black">${aiResult.condition}</td></tr>
-          <tr><td>Match Confidence</td><td class="val-blue">${aiResult.certainty}</td></tr>
-          <tr><td>Urgency Level</td><td class="val-amber">MODERATE</td></tr>
-          <tr><td>Symptoms Logged</td><td class="val-black">${selectedSymptoms.length}</td></tr>
+          <tr><td>Risk Level</td><td style="color:${riskColor};font-weight:800;">${riskLevel}</td></tr>
+          <tr><td>Most Likely Condition</td><td class="val-black">${topCondition}</td></tr>
+          <tr><td>Symptoms Reported</td><td class="val-black">${selectedSymptoms.length}</td></tr>
+          <tr><td>Recommended Specialist</td><td class="val-blue">${aiResult.recommendedSpecialty}</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- CHART + SPECIALIST -->
+  <!-- RISK + SPECIALIST -->
   <div class="bottom-row">
-    <!-- CONFIDENCE RING -->
+    <!-- RISK INDICATOR -->
     <div class="chart-box">
-      <div class="chart-label">AI Confidence</div>
-      <div class="chart-container">
-        <svg viewBox="0 0 36 36">
-          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e2e8f0" stroke-width="4"/>
-          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2563eb" stroke-width="4" stroke-dasharray="${dashArray}" stroke-dashoffset="0"/>
-        </svg>
-        <div class="chart-text">${aiResult.certainty}</div>
-      </div>
+      <div class="chart-label">Risk Level</div>
+      <div style="font-size:28px;margin:6px 0;">${riskLevel === 'Critical' ? '🚨' : riskLevel === 'Urgent' ? '⚠️' : riskLevel === 'Moderate' ? '🔶' : '✅'}</div>
+      <div style="font-size:10px;font-weight:800;color:${riskColor};text-transform:uppercase;text-align:center;">${riskLevel}</div>
     </div>
 
     <!-- SPECIALIST -->
@@ -529,48 +551,108 @@ export default function SymptomChecker() {
                     {/* STEP 3: RESULTS & DOCTORS */}
                     {step === 3 && aiResult && (
                         <div className="animate-fade-in relative z-10">
-                            
+
+                            {/* EMERGENCY MODAL */}
+                            {showEmergency && (
+                                <div className="fixed inset-0 z-[200] bg-red-950/95 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center">
+                                    <div className="text-7xl mb-6 animate-bounce">🚨</div>
+                                    <h2 className="text-3xl font-black text-red-400 mb-3 uppercase tracking-tight">Emergency Symptoms Detected</h2>
+                                    <p className="text-slate-200 max-w-md mb-2 leading-relaxed">Your reported symptoms may indicate a <strong>serious medical emergency</strong>. Do not wait — time is critical.</p>
+                                    <p className="text-red-300 text-sm font-bold mb-8 uppercase tracking-widest">Do NOT drive yourself. Call now.</p>
+                                    <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                                        <a href="tel:999" className="bg-red-600 hover:bg-red-500 text-white font-black py-4 px-10 rounded-2xl text-lg transition-all shadow-2xl shadow-red-900/50 flex items-center gap-3">
+                                            📞 Call Emergency (999)
+                                        </a>
+                                        <a href="tel:911" className="bg-red-900/60 hover:bg-red-900 border border-red-500/50 text-white font-black py-4 px-10 rounded-2xl text-lg transition-all flex items-center gap-3">
+                                            📞 Call 911
+                                        </a>
+                                    </div>
+                                    <button onClick={() => setShowEmergency(false)} className="text-slate-400 hover:text-white text-sm font-bold uppercase tracking-widest transition-colors border-b border-slate-600 pb-0.5">
+                                        I understand the risk — view AI assessment →
+                                    </button>
+                                </div>
+                            )}
+
                             <h2 className="text-xl font-black text-white mb-6 flex items-center gap-2">
                                 <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-600/20 text-emerald-400 text-xs border border-emerald-500/30">02</span>
-                                Diagnostic Assessment
+                                AI Health Assessment
                             </h2>
 
+                            {/* RISK LEVEL BANNER */}
+                            {(() => {
+                                const risk = riskConfig[aiResult.riskLevel] || riskConfig.Low;
+                                return (
+                                    <div className={`mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border ${risk.bg} ${risk.border}`}>
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-3xl">{risk.icon}</span>
+                                            <div>
+                                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Risk Assessment</p>
+                                                <p className={`text-xl font-black ${risk.color} uppercase tracking-tighter`}>{risk.label}</p>
+                                            </div>
+                                        </div>
+                                        <div className={`text-sm font-bold ${risk.color} max-w-sm leading-snug`}>
+                                            {aiResult.recommendedAction}
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+
                             <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8 mb-10 overflow-hidden relative group">
-                                {/* HUD DECO */}
                                 <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-bl-full translate-x-12 -translate-y-12"></div>
-                                
+
                                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-10">
                                     <div className="flex-1 space-y-8">
+
+                                        {/* POSSIBLE CONDITIONS (ranked) */}
                                         <div>
-                                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-1 px-1">Highest Correlated Condition</p>
-                                            <p className="text-2xl font-black text-white tracking-tighter leading-none italic">{aiResult.condition}</p>
+                                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-3 px-1">Possible Conditions — AI Assessment Only</p>
+                                            <div className="space-y-2">
+                                                {(aiResult.possibleConditions || []).map((c, i) => (
+                                                    <div key={i} className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-white/5 border border-white/5">
+                                                        <span className={`font-bold text-sm ${i === 0 ? 'text-white' : 'text-slate-400'}`}>{c.name}</span>
+                                                        <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-full ${
+                                                            c.likelihood === 'Most Likely'
+                                                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                                                : c.likelihood === 'Possible'
+                                                                ? 'bg-amber-500/15 text-amber-400 border border-amber-500/20'
+                                                                : 'bg-white/5 text-slate-500 border border-white/5'
+                                                        }`}>{c.likelihood}</span>
+                                                    </div>
+                                                ))}
+                                                {(!aiResult.possibleConditions || aiResult.possibleConditions.length === 0) && (
+                                                    <p className="text-slate-500 text-sm font-medium px-3">Could not identify a specific condition — please see a GP.</p>
+                                                )}
+                                            </div>
                                         </div>
+
                                         <div>
-                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-2 px-1">Clinical Intervention Plan</p>
-                                            <p className="text-slate-300 font-medium leading-relaxed">{aiResult.advice}</p>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-2 px-1">Clinical Guidance</p>
+                                            <p className="text-slate-300 font-medium leading-relaxed">{aiResult.clinicalAdvice}</p>
                                         </div>
+
                                         <div className="flex gap-4">
-                                            <button 
+                                            <button
                                                 onClick={() => setShowReport(true)}
                                                 className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 px-6 py-3 rounded-xl border border-emerald-500/20 transition-all active:scale-95"
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                                View Clinical Report
+                                                View Health Report
                                             </button>
                                         </div>
                                     </div>
-                                    
-                                    <div className="w-full md:w-48 bg-white/5 p-5 rounded-2xl border border-white/10 text-center relative overflow-hidden backdrop-blur-md">
-                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3">Neural Confidence</p>
-                                        <div className="text-3xl font-black text-white mb-3 tracking-tighter italic">{aiResult.certainty}</div>
-                                        <div className="w-full bg-white/5 rounded-full h-2 shadow-inner">
-                                            <div className="bg-gradient-to-r from-emerald-600 to-emerald-400 h-full rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all duration-1000" style={{ width: aiResult.certainty }}></div>
-                                        </div>
-                                        <div className="mt-4 flex justify-between text-[10px] font-bold text-slate-500 px-1 uppercase tracking-tighter">
-                                            <span>Baseline</span>
-                                            <span>Verified</span>
-                                        </div>
-                                    </div>
+
+                                    {/* Risk Level Side Panel */}
+                                    {(() => {
+                                        const risk = riskConfig[aiResult.riskLevel] || riskConfig.Low;
+                                        return (
+                                            <div className={`w-full md:w-44 p-5 rounded-2xl border text-center ${risk.bg} ${risk.border}`}>
+                                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-3">Risk Level</p>
+                                                <div className="text-4xl mb-2">{risk.icon}</div>
+                                                <div className={`text-base font-black ${risk.color} uppercase tracking-tight leading-tight`}>{risk.label}</div>
+                                                <p className="text-[8px] text-slate-500 mt-3 leading-tight">This is an AI assessment, not a diagnosis.</p>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             </div>
 
@@ -735,7 +817,7 @@ export default function SymptomChecker() {
                                             </div>
                                             <div>
                                                 <p className="text-[9px] font-black text-slate-500 uppercase mb-1">Diagnostic Target</p>
-                                                <p className="font-bold text-white leading-tight">{aiResult?.condition}</p>
+                                                <p className="font-bold text-white leading-tight">{aiResult?.possibleConditions?.[0]?.name || 'See health report'}</p>
                                             </div>
                                         </div>
                                         <div className="flex gap-4">
@@ -781,8 +863,8 @@ export default function SymptomChecker() {
                                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-slate-900 uppercase tracking-widest text-xs">Medical Report</h3>
-                                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Verified Clinical Data</p>
+                                            <h3 className="font-bold text-slate-900 uppercase tracking-widest text-xs">AI Health Assessment</h3>
+                                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Not a Medical Diagnosis</p>
                                         </div>
                                     </div>
                                     <div className="flex gap-3">
@@ -816,13 +898,21 @@ export default function SymptomChecker() {
                                         </div>
                                     </div>
 
-                                    {/* Executive Summary */}
+                                    {/* Disclaimer Banner */}
+                                    <div className="bg-amber-50 border border-amber-300 rounded-lg p-3 flex items-start gap-3">
+                                        <span className="text-amber-500 text-lg flex-shrink-0">⚠️</span>
+                                        <p className="text-[10px] text-amber-800 font-bold leading-relaxed">
+                                            <strong>IMPORTANT:</strong> This is an AI-generated health assessment — NOT a medical diagnosis. This report is for informational purposes only. Always consult a licensed physician before making any health decisions.
+                                        </p>
+                                    </div>
+
+                                    {/* Summary */}
                                     <div className="bg-blue-50 border-l-4 border-blue-600 p-4">
-                                        <p className="text-[9px] font-bold text-blue-600 uppercase tracking-widest mb-1.5">Executive Summary</p>
+                                        <p className="text-[9px] font-bold text-blue-600 uppercase tracking-widest mb-1.5">AI Assessment Summary</p>
                                         <p className="text-sm text-slate-800 leading-relaxed">
-                                            AI analysis identified a correlation with <span className="font-bold text-black underline underline-offset-2">{aiResult.condition}</span>. 
-                                            The protocol below outlines recommended steps based on <strong>{selectedSymptoms.length}</strong> reported symptom{selectedSymptoms.length !== 1 ? 's' : ''}. 
-                                            Please follow the suggestions and consult the recommended specialist promptly.
+                                            Based on <strong>{selectedSymptoms.length}</strong> reported symptom{selectedSymptoms.length !== 1 ? 's' : ''}, the AI identified <span className="font-bold text-black">{(aiResult.possibleConditions || []).length}</span> possible condition{aiResult.possibleConditions?.length !== 1 ? 's' : ''}.
+                                            Risk level is assessed as <span className="font-bold text-black underline underline-offset-2">{aiResult.riskLevel}</span>.
+                                            Recommended action: {aiResult.recommendedAction}
                                         </p>
                                     </div>
 
@@ -860,12 +950,12 @@ export default function SymptomChecker() {
                                                             </thead>
                                                             <tbody className="divide-y divide-slate-100">
                                                                 <tr>
-                                                                    <td className="px-4 py-2 font-medium text-slate-500 italic">Match Accuracy</td>
-                                                                    <td className="px-4 py-2 text-right text-blue-600 font-bold">{aiResult.certainty}</td>
+                                                                    <td className="px-4 py-2 font-medium text-slate-500 italic">Risk Level</td>
+                                                                    <td className="px-4 py-2 text-right font-bold text-blue-600">{aiResult.riskLevel || 'N/A'}</td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <td className="px-4 py-2 font-medium text-slate-500 italic">Urgency Scale</td>
-                                                                    <td className="px-4 py-2 text-right text-amber-600 font-bold">MODERATE</td>
+                                                                    <td className="px-4 py-2 font-medium text-slate-500 italic">Symptoms Reported</td>
+                                                                    <td className="px-4 py-2 text-right font-bold text-slate-700">{selectedSymptoms.length}</td>
                                                                 </tr>
                                                             </tbody>
                                                         </table>
@@ -879,14 +969,11 @@ export default function SymptomChecker() {
                                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10 mt-2">
                                         {/* Intensity Chart (Visual Object 2) */}
                                         <div className="md:col-span-1 border border-slate-200 p-4 flex flex-col items-center justify-center bg-white shadow-sm">
-                                            <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest mb-2">Diagnostic Intensity</p>
-                                            <div className="relative w-14 h-14">
-                                                <svg viewBox="0 0 36 36" className="w-full h-full text-blue-600">
-                                                    <path className="text-slate-100" stroke="currentColor" strokeWidth="4" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                                    <path className="text-blue-600" stroke="currentColor" strokeWidth="4" strokeDasharray={`${parseInt(aiResult.certainty)}, 100`} fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                                                </svg>
-                                                <div className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-black">{aiResult.certainty}</div>
+                                            <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest mb-2">Risk Level</p>
+                                            <div className="text-xl font-black text-center leading-tight">
+                                                {aiResult.riskLevel === 'Critical' ? '🚨' : aiResult.riskLevel === 'Urgent' ? '⚠️' : aiResult.riskLevel === 'Moderate' ? '🔶' : '✅'}
                                             </div>
+                                            <div className="text-[9px] font-black text-black mt-1 uppercase tracking-tight text-center">{aiResult.riskLevel}</div>
                                         </div>
 
                                         {/* Specialist Link */}
