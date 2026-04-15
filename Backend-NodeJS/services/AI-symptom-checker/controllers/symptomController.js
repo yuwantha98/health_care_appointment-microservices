@@ -311,10 +311,15 @@ const analyzeSymptoms = (req, res) => {
                 : missingKeywords.slice(0, 3).map(kw => `Are you also experiencing ${kw}?`);
         }
 
+        // Compute a display-friendly match score (capped at 96%)
+        const rawPct = Math.round((best.score / best.keywords.length) * 100);
+        const matchScore = `${Math.min(rawPct, 96)}%`;
+
         return res.status(200).json({
             success: true,
             data: {
                 riskLevel,
+                matchScore,
                 isEmergency,
                 possibleConditions: top3,
                 recommendedAction: getRecommendedAction(riskLevel),
