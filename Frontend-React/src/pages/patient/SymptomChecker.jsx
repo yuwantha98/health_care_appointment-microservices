@@ -52,6 +52,11 @@ export default function SymptomChecker() {
     const [selectedTime, setSelectedTime] = useState('');
     const [isBooking, setIsBooking] = useState(false);
 
+    // Patient Profile
+    const [patientName, setPatientName] = useState('');
+    const [patientEmail, setPatientEmail] = useState('');
+    const [patientPhone, setPatientPhone] = useState('');
+
     // Risk Level config
     const riskConfig = {
         Critical: { color: 'text-red-400',    bg: 'bg-red-500/15',    border: 'border-red-500/30',    icon: '🚨', label: 'Critical Risk' },
@@ -291,7 +296,10 @@ export default function SymptomChecker() {
       </div>
     </div>
     <div class="header-right">
-      <div class="label">Generated On</div>
+      <div class="label">Patient Information</div>
+      <div class="value" style="color:#000;">${patientName || 'ANONYMOUS'}</div>
+      <div style="font-size:9px;color:#64748b;">${patientEmail || 'No Email'} &bull; ${patientPhone || 'No Phone'}</div>
+      <div class="label" style="margin-top:10px;">Generated On</div>
       <div class="value">${date}</div>
     </div>
   </div>
@@ -449,7 +457,50 @@ export default function SymptomChecker() {
                     {/* STEP 1: INPUT */}
                     {step === 1 && (
                         <div className="animate-fade-in relative z-10">
-                            <h2 className="text-xl font-black text-white mb-6 flex items-center gap-2">
+                            {/* PATIENT PROFILE CARD */}
+                            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 mb-8 backdrop-blur-xl relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                                    <svg className="w-20 h-20 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                                </div>
+                                <h3 className="text-xs font-black text-blue-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
+                                    <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                                    Patient Clinical Profile
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Full Identity</label>
+                                        <input 
+                                            type="text"
+                                            placeholder="e.g. Naji Ahmad"
+                                            value={patientName}
+                                            onChange={(e) => setPatientName(e.target.value)}
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-3.5 focus:outline-none focus:border-blue-500/50 transition-all text-sm font-bold text-white placeholder:text-slate-700"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Digital Mail</label>
+                                        <input 
+                                            type="email"
+                                            placeholder="naji@example.com"
+                                            value={patientEmail}
+                                            onChange={(e) => setPatientEmail(e.target.value)}
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-3.5 focus:outline-none focus:border-blue-500/50 transition-all text-sm font-bold text-white placeholder:text-slate-700"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Contact Nexus</label>
+                                        <input 
+                                            type="tel"
+                                            placeholder="+94 7X XXX XXXX"
+                                            value={patientPhone}
+                                            onChange={(e) => setPatientPhone(e.target.value)}
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-3.5 focus:outline-none focus:border-blue-500/50 transition-all text-sm font-bold text-white placeholder:text-slate-700"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h2 className="text-xl font-black text-white mb-8 flex items-center gap-2">
                                 <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-blue-600/20 text-blue-400 text-xs border border-blue-500/30">01</span>
                                 Clinical Observations
                             </h2>
@@ -973,6 +1024,22 @@ export default function SymptomChecker() {
                                         <p className="text-[10px] text-amber-800 font-bold leading-relaxed">
                                             <strong>IMPORTANT:</strong> This is an AI-generated health assessment — NOT a medical diagnosis. This report is for informational purposes only. Always consult a licensed physician before making any health decisions.
                                         </p>
+                                    </div>
+
+                                    {/* Patient Identification */}
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50 border-y border-slate-200 py-6 px-4">
+                                        <div>
+                                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Patient Name</p>
+                                            <p className="text-xs font-black text-slate-900">{patientName || 'Anonymous'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Electronic Mail</p>
+                                            <p className="text-xs font-black text-slate-900">{patientEmail || 'Not Provided'}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Contact Nexus</p>
+                                            <p className="text-xs font-black text-slate-900">{patientPhone || 'Not Provided'}</p>
+                                        </div>
                                     </div>
 
                                     {/* Summary */}
